@@ -6,6 +6,8 @@ Linux's flexibility is its greatest strength, yet the endless maze of scattered 
 
 I'm trying to introduce a solution, basing on my experience. This is how I packed all customizations into a single directory, and have it synced with Nextcloud (and git).
 
+The top challenge is to gather all customizations & put all of them into a single place. I know you have your own sync tool / backup solution. No worry, it's up to you to determine how u want to backup them!
+
 ## note
 
 ```
