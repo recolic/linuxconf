@@ -4,7 +4,7 @@
 
 Linux's flexibility is its greatest strength, yet the endless maze of scattered configurations and customizations turns setup into a tedious, error-prone process. Every new machine becomes a painful chore of piecing together dotfiles, scripts, and tweaks, making reproducibility a constant challenge. 
 
-I'm trying to introduce a solution, basing on how I gathered all customizations into a single directory, and have it synced with Nextcloud (and git).
+I'm trying to introduce a solution, basing on my experience. This is how I packed all customizations into a single directory, and have it synced with Nextcloud (and git).
 
 ## note
 
