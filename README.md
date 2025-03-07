@@ -26,7 +26,7 @@ systemd?
 4. what to do in background (cron)
 5. what file to override (customer application, package, config file, script, ...) 
 
-You might say, I use init.sh for task-1, systemd for task-2 (probably multiple files everywhere), shell-rc for task-3 (probably with .profile), crontab for task-4 (probably with some systemd mess), dotfile for task-5.
+You might say, I use install-my-pkgs.sh for task-1, systemd for task-2 (probably multiple files everywhere), shell-rc for task-3 (probably with .profile), crontab for task-4 (probably with some systemd mess), dotfile for task-5.
 
 Nice. You have just demonstrated how to reproduce that ugly mess: Various customization everywhere.
 
