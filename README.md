@@ -1,4 +1,4 @@
-# linux-sync
+# linuxconf
 
 > backup or sync all your linux customizations in one place.
 
