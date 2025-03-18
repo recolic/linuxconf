@@ -29,6 +29,11 @@ function lc_startup () {
     
 }
 
+function lc_login () {
+    # warning: less useful. happens again if user logout/login again.
+    lc_login_is_x11?
+}
+
 function lc_cron () {
     # hourly / daily / weekly / monthly?
     # as root / as user?
