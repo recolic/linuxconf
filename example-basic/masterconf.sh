@@ -15,22 +15,25 @@
 lc_include conf.d/*
 
 # likely to use the following grammar in each sub conf:
-lc_is_root && exit
-lc_is_root || exit
+lc_assert_user_is root
+lc_assert_user_is_not root
 
+# I strongly suggest u design lc_init() as an idempotent operation. Just in case u accidentally run `linuxconf register` elsewhere.
 function lc_init () {
     # as root / as user?
 
+    # note: in demo, append /etc/profile for PATH
 }
 
 function lc_startup () {
     # as root / as user?
-    # with desktop env?
+    # with desktop env? (not supported yet)
     
 }
 
 function lc_login () {
     # warning: less useful. happens again if user logout/login again.
+    # (no plan to support in first ver)
     lc_login_is_x11?
 }
 
@@ -40,6 +43,6 @@ function lc_cron () {
     
 }
 
-# map for every user? 
+# Warning: watch out for unintended user
 lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
 

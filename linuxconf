@@ -1,0 +1,107 @@
+#!/bin/bash
+
+function die () {
+    echo "Error: $@" 1>&2
+    exit 1
+}
+
+lc_include conf.d/*
+function lc_include () {
+
+}
+
+function lc_assert_user_is () {
+    # todo
+}
+function lc_assert_user_is_not () {
+    # todo
+}
+
+#function lc_init () {
+#    # as root / as user?
+#
+#    # note: in demo, append /etc/profile for PATH
+#}
+#
+#function lc_startup () {
+#    # as root / as user?
+#    # with desktop env? (not supported yet)
+#
+#}
+#
+#function lc_login () {
+#    # warning: less useful. happens again if user logout/login again. (not supported yet)
+#    lc_login_is_x11?
+#}
+#
+#function lc_cron () {
+#    # hourly / daily / weekly / monthly?
+#    # as root / as user?
+#    $ how to allow user set 'every 2m' or 'every 1d'?
+#
+#}
+
+# Warning: watch out for unintended user
+lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
+
+function lc_fsmap () {
+
+}
+
+function lci_register () {
+    # todo: register a new rootdir
+    local rootdir="$1"
+    [[ -d "$rootdir" ]] && [[ -f "$rootdir/masterconf.sh" ]] || ! echo "$rootdir/masterconf.sh must exist" || exit 1
+    local newconf="path=$(realpath "$rootdir/masterconf.sh")"
+
+    if [[ -f /etc/linuxconf.conf ]]; then
+        local oldconf="$(grep ^path= /etc/linuxconf.conf 2>/dev/null)"
+        [[ "$oldconf" = "$newconf" ]] && return 0
+    fi
+
+    # For new register (or register a different dir), clear all existing conf. This will trigger init again.
+    echo "$newconf" | tee /etc/linuxconf.conf || die "lci_register failed, unable to write /etc/linuxconf.conf"
+    chmod ugo+rw /etc/linuxconf.conf
+}
+
+function lci_init_if_needed () {
+    local uname="$(whoami)"
+    if grep "^init_done_u_$uname=1" /etc/linuxconf.conf ; then
+        return 0
+    fi
+    # TODO: TODO: call init 
+    echo "init_done_u_$uname=1" | tee -a /etc/linuxconf.conf || die "lc_init functions succeeded, but unable to update /etc/linuxconf.conf"
+}
+
+function lci_startup_if_needed () {
+    local uname="$(whoami)"
+    local state_file=/tmp/.linuxconf-startup-state
+    if [[ ! -f $state_file ]]; then
+        touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
+    fi
+
+    if grep "^startup_done_u_$uname=1" $state_file ; then
+        return 0
+    fi
+    # TODO: TODO: call startup
+    # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
+    #       if that's the case, startup_u still needed, because on first init, startup might be called multiple times for same user.
+    echo "startup_done_u_$uname=1" | tee -a $state_file || die "lc_startup functions succeeded, but unable to update $state_file"
+}
+
+subcommand="$1"
+if [[ "$subcommand" = register ]]; then
+    lci_register "$2"
+    lci_init_if_needed
+    lci_startup_if_needed
+elif [[ "$subcommand" = _cron ]]; then
+    # TODO
+elif [[ "$subcommand" = _startup ]]; then
+    lci_startup_if_needed
+else
+    lci_usage
+    exit
+fi
+
+[[ ! -f /etc/linuxconf.conf ]] && echo "Please run '$0 register <Config Root Dir>' at least once" && exit 1
+

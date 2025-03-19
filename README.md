@@ -31,3 +31,12 @@ You might say, I use install-my-pkgs.sh for task-1, systemd for task-2 (probably
 Nice. You have just demonstrated how to reproduce that ugly mess: Various customization everywhere.
 
 This project is to manage everything in a centralized folder. If you back it up & recover, your workspace is back. If you move this single folder to another PC, it turns into your familiar workspace.
+
+
+## todo
+
+another example for archlinux gnome, for demo
+
+## dependency:
+
+bash coreutils grep
