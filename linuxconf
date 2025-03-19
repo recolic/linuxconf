@@ -74,11 +74,13 @@ function lci_init_if_needed () {
 }
 
 function lci_startup_if_needed () {
-    local uname="$(whoami)"
     local state_file=/tmp/.linuxconf-startup-state
     if [[ ! -f $state_file ]]; then
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
+
+    # TODO: loop here... check if whoami is root
+    local uname="$(whoami)"
 
     if grep "^startup_done_u_$uname=1" $state_file ; then
         return 0
