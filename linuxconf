@@ -171,6 +171,7 @@ if [[ "$subcommand" = register ]]; then
     lci_startup_if_needed
 elif [[ "$subcommand" = _cron ]]; then
     # TODO: implement cron. with crontab or same systemd service?
+    :
 elif [[ "$subcommand" = _startup ]]; then
     lci_startup_if_needed
 elif [[ "$subcommand" = _startup_all ]]; then
