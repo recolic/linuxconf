@@ -1,7 +1,11 @@
 #!/bin/bash
 
-function die () {
+function err () {
     echo "Error: $@" 1>&2
+    return 1
+}
+function die () {
+    err "$@"
     exit 1
 }
 
@@ -81,11 +85,20 @@ function lci_state_file_contains () {
     grep "^${prefix}_u_$uname=1" "$fname"
     return $?
 }
+function lci_state_file_list () {
+    # stdout: uname list
+    local fname="$1"
+    local prefix="$2"
+    local ar_uname=()
+
+    grep "^${prefix}_u_.*=1$" "$fname" | sed "s/^${prefix}_u_//" | sed "s/=1$//"
+    return $?
+}
 
 
 function lci_register () {
     local rootdir="$1"
-    [[ -d "$rootdir" ]] && [[ -f "$rootdir/masterconf.sh" ]] || ! echo "$rootdir/masterconf.sh must exist" || exit 1
+    [[ -d "$rootdir" ]] && [[ -f "$rootdir/masterconf.sh" ]] || die "lci_register: $rootdir/masterconf.sh must exist"
     local newconf="path=$(realpath "$rootdir/masterconf.sh")"
 
     if [[ -f /etc/linuxconf.conf ]]; then
@@ -116,22 +129,14 @@ function lci_startup_if_needed () {
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
 
-    local ar_uname=()
     if [[ "$uname_" = "" ]]; then
         [[ "$(whoami)" != root ]] && die "lci_startup_if_needed called for all user, but caller is not root. sudo might fail."
-        while IFS= read -r line; do
-            if [[ $line =~ ^init_done_u_([a-zA-Z0-9]+)=1$ ]]; then
-                ar_uname+=("${BASH_REMATCH[1]}")
-            fi
-        done < /etc/linuxconf.conf
+        local ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || err "lci_state_file_list failed" || return $?
     else
-        ar_uname+=("$uname_")
+        local ar_uname=("$uname_")
     fi
 
     for uname in "${ar_uname[@]}"; do
-        if grep "^startup_done_u_$uname=1" $state_file ; then
-            return 0
-        fi
         lci_state_file_contains $state_file startup_done "$uname" && return 0
         # TODO: TODO: call startup
         # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
