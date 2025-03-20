@@ -1,0 +1,21 @@
+" basic
+set number
+syntax on
+filetype plugin indent on
+set belloff=all
+
+" tab settings
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set mouse=
+
+map - ddp
+map + ddkP
+map <C-d> daw
+nnoremap <C-o> o<Esc>I
+
+" Ctrl-F search
+set hlsearch
+map <C-f> viwyk/<C-r>"<CR>
+set mouse=

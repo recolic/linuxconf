@@ -5,7 +5,10 @@ lc_init () {
 
 }
 
+lc_fsmap $HOME/sh/mybin /usr/mybin
+
 lc_startup () {
 
 }
+
 

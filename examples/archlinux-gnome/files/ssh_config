@@ -1,0 +1,8 @@
+host *
+    PubkeyAcceptedAlgorithms +ssh-rsa
+    hostkeyAlgorithms +ssh-rsa
+    StricthostKeyChecking no
+    #userKnownhostsFile=/dev/null
+    ServerAliveInterval 3
+    #LogLevel ERROR
+
