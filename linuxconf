@@ -35,7 +35,7 @@ function lc_include () {
     return 0
 }
 
-function lc_fsmap () {
+function lci_fsmap () {
     # If existing symlink is correct, do nothing & return 0 (success).
     # Otherwise, delete the existing symlink. If the existing item is file/folder, move to '$filename.linuxsync_backup'.
     # Then create a symlink.
@@ -54,6 +54,13 @@ function lc_fsmap () {
     fi
 
     ln -s "$content_path" "$symlink_path"
+}
+
+function lc_fsmap () {
+    lci_fsmap "$@"
+    local result=$?
+    [ $result = 0 ] || err "lc_fsmap returned error $result"
+    return $result
 }
 
 function lci_state_file_append () {
@@ -147,10 +154,13 @@ function lci_startup_if_needed () {
 }
 
 function lci_usage () {
+    echo2 "linuxconf v$lci_version"
+    echo2 "This tool helps you manage all linux customization in one centralized directory, making backup/sync much easier."
     echo2 "Usage: Run '$0 register <path/to/masterconf.sh>', then it will work out-of-box."
     exit 1
 }
 
+lci_version=0.1.0
 subcommand="$1"
 if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && die "Please run '$0 register <path/to/masterconf.sh>' at least once"
