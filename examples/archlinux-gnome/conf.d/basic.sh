@@ -29,6 +29,7 @@ lc_init () {
     echo 'rtest ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
     usermod --password $(echo testpass | openssl passwd -1 -stdin) rtest
 
+    sudo -u rtest realpath masterconf.sh || ! echo "ERROR: rtest do not have access to config dir." || exit 1
     sudo -u rtest linuxconf register masterconf.sh
 
     # more customization...

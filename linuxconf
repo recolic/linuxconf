@@ -25,14 +25,14 @@ function lc_include () {
     # print the return code of the eval-ed function to stderr, but this function should always return success.
 
     for script in "$@"; do
-	[[ -f "$script" ]] || err "ERROR: DEBUG: script not exist >>$script<<" || continue
         echo2 "$script -- $LCI_SUBSHELL_OP started as $(whoami), at $(pwd)"
         (
             source "$script"
-	    declare -F "$LCI_SUBSHELL_OP" >/dev/null 2>&1 || exit 0
+            declare -F "$LCI_SUBSHELL_OP" >/dev/null 2>&1 || exit 0
             eval "$LCI_SUBSHELL_OP"
         )
-        echo2 "$script -- $LCI_SUBSHELL_OP completed with status $return_code"
+        echo2 "$script -- $LCI_SUBSHELL_OP completed with status $?"
+        # TODO: should I abort on failure? But for nested lc_include, I cannot know if it failed.
     done
 
     return 0
