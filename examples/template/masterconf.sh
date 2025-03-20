@@ -46,3 +46,7 @@ function lc_cron () {
 # Warning: watch out for unintended user
 lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
 
+# TODO: what if lc_fsmap depends on lc_init() ?? This is not recommended usage. 
+# e.g: 'git clone xxx $HOME/sh' and lc_fsmap $HOME/sh/something /usr/bin/fancy
+# lc_fsmap should success even if $HOME/sh/something doesn't exist yet. (what if dest also not exist? let it fail...)
+
