@@ -36,10 +36,10 @@ function lc_include () {
 
 
 function lc_assert_user_is () {
-    # todo
+    [[ "$(whoami)" = "$1" ]] || exit 2
 }
 function lc_assert_user_is_not () {
-    # todo
+    [[ "$(whoami)" != "$1" ]] || exit 2
 }
 
 #function lc_init () {
@@ -136,7 +136,9 @@ function lci_init_if_needed () {
     local uname="$(whoami)"
     lci_state_file_contains /etc/linuxconf.conf init_done "$uname" && return 0
 
+    export LCI_SUBSHELL_OP=lc_init
     # TODO: TODO: call init 
+    export LCI_SUBSHELL_OP=__lc_operation_unset
     
     lci_state_file_append /etc/linuxconf.conf init_done "$uname" || die "lc_init functions succeeded, but unable to update /etc/linuxconf.conf"
 }
@@ -159,9 +161,14 @@ function lci_startup_if_needed () {
 
     for uname in "${ar_uname[@]}"; do
         lci_state_file_contains $state_file startup_done "$uname" && return 0
+
+        export LCI_SUBSHELL_OP=lc_startup
         # TODO: TODO: call startup
         # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
         #       if that's the case, startup_u still needed, because on first init, startup might be called multiple times for same user.
+        sudo -u ...
+        export LCI_SUBSHELL_OP=__lc_operation_unset
+       
         lci_state_file_append $state_file startup_done "$uname" || die "lc_startup functions succeeded, but unable to update $state_file"
     done
 }

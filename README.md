@@ -39,4 +39,4 @@ another example for archlinux gnome, for demo
 
 ## dependency:
 
-bash coreutils grep
+bash coreutils grep sudo
