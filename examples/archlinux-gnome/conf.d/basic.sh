@@ -29,8 +29,11 @@ lc_init () {
     echo 'rtest ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
     usermod --password $(echo testpass | openssl passwd -1 -stdin) rtest
 
-    sudo -u rtest realpath masterconf.sh || ! echo "ERROR: rtest do not have access to config dir." || exit 1
-    sudo -u rtest linuxconf register masterconf.sh
+    if ! sudo -u rtest realpath masterconf.sh; then
+        echo "ERROR: rtest do not have access to current dir... fix permission and manually register with 'sudo -u rtest'."
+    else
+        sudo -u rtest linuxconf register masterconf.sh
+    fi
 
     # more customization...
     grep kernel.sysrq=1 /etc/sysctl.d/99-sysctl.conf || echo 'kernel.sysrq=1' >> /etc/sysctl.d/99-sysctl.conf
