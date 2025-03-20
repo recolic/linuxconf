@@ -45,11 +45,45 @@ function lc_assert_user_is_not () {
 lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
 
 function lc_fsmap () {
+    # If existing symlink is correct, do nothing & return 0 (success).
+    # Otherwise, delete the existing symlink. If the existing item is file/folder, move to '$filename.linuxsync_backup'.
+    # Then create a symlink.
 
+    local content_path="$(realpath "$1")"
+    local symlink_path="$2"
+
+    if [ -L "$symlink_path" ]; then
+        if [ "$(readlink "$symlink_path")" = "$content_path" ]; then
+            return 0
+        else
+            rm "$symlink_path" || return $?
+        fi
+    elif [ -e "$symlink_path" ]; then
+        mv "$symlink_path" "${symlink_path}.linuxsync_backup" || rm -f "$symlink_path" || return $?
+    fi
+
+    ln -s "$content_path" "$symlink_path"
 }
 
+function lci_state_file_append () {
+    local fname="$1"
+    local prefix="$2"
+    local uname="$3"
+
+    echo "${prefix}_u_$uname=1" | tee -a "$fname"
+    return $?
+}
+function lci_state_file_contains () {
+    local fname="$1"
+    local prefix="$2"
+    local uname="$3"
+
+    grep "^${prefix}_u_$uname=1" "$fname"
+    return $?
+}
+
+
 function lci_register () {
-    # todo: register a new rootdir
     local rootdir="$1"
     [[ -d "$rootdir" ]] && [[ -f "$rootdir/masterconf.sh" ]] || ! echo "$rootdir/masterconf.sh must exist" || exit 1
     local newconf="path=$(realpath "$rootdir/masterconf.sh")"
@@ -66,36 +100,51 @@ function lci_register () {
 
 function lci_init_if_needed () {
     local uname="$(whoami)"
-    if grep "^init_done_u_$uname=1" /etc/linuxconf.conf ; then
-        return 0
-    fi
+    lci_state_file_contains /etc/linuxconf.conf init_done "$uname" && return 0
+
     # TODO: TODO: call init 
-    echo "init_done_u_$uname=1" | tee -a /etc/linuxconf.conf || die "lc_init functions succeeded, but unable to update /etc/linuxconf.conf"
+    
+    lci_state_file_append /etc/linuxconf.conf init_done "$uname" || die "lc_init functions succeeded, but unable to update /etc/linuxconf.conf"
 }
 
 function lci_startup_if_needed () {
+    # Arg1: Username. Leave empty to call startup for all user.
+    local uname_="$1"
+
     local state_file=/tmp/.linuxconf-startup-state
     if [[ ! -f $state_file ]]; then
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
 
-    # TODO: loop here... check if whoami is root
-    local uname="$(whoami)"
-
-    if grep "^startup_done_u_$uname=1" $state_file ; then
-        return 0
+    local ar_uname=()
+    if [[ "$uname_" = "" ]]; then
+        [[ "$(whoami)" != root ]] && die "lci_startup_if_needed called for all user, but caller is not root. sudo might fail."
+        while IFS= read -r line; do
+            if [[ $line =~ ^init_done_u_([a-zA-Z0-9]+)=1$ ]]; then
+                ar_uname+=("${BASH_REMATCH[1]}")
+            fi
+        done < /etc/linuxconf.conf
+    else
+        ar_uname+=("$uname_")
     fi
-    # TODO: TODO: call startup
-    # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
-    #       if that's the case, startup_u still needed, because on first init, startup might be called multiple times for same user.
-    echo "startup_done_u_$uname=1" | tee -a $state_file || die "lc_startup functions succeeded, but unable to update $state_file"
+
+    for uname in "${ar_uname[@]}"; do
+        if grep "^startup_done_u_$uname=1" $state_file ; then
+            return 0
+        fi
+        lci_state_file_contains $state_file startup_done "$uname" && return 0
+        # TODO: TODO: call startup
+        # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
+        #       if that's the case, startup_u still needed, because on first init, startup might be called multiple times for same user.
+        lci_state_file_append $state_file startup_done "$uname" || die "lc_startup functions succeeded, but unable to update $state_file"
+    done
 }
 
 subcommand="$1"
 if [[ "$subcommand" = register ]]; then
     lci_register "$2"
     lci_init_if_needed
-    lci_startup_if_needed
+    lci_startup_if_needed "$(whoami)"
 elif [[ "$subcommand" = _cron ]]; then
     # TODO
 elif [[ "$subcommand" = _startup ]]; then
