@@ -12,7 +12,12 @@ function die () {
     exit 1
 }
 
-lc_include conf.d/*
+function lc_assert_user_is () {
+    [[ "$(whoami)" = "$1" ]] || exit 2
+}
+function lc_assert_user_is_not () {
+    [[ "$(whoami)" != "$1" ]] || exit 2
+}
 
 function lc_include () {
     # for every included shell script, spawn sub shell,
@@ -29,45 +34,6 @@ function lc_include () {
 
     return 0
 }
-
-# Example usage:
-# LCI_SUBSHELL_OP="your_function_name"
-# lc_include conf.d/*
-
-
-function lc_assert_user_is () {
-    [[ "$(whoami)" = "$1" ]] || exit 2
-}
-function lc_assert_user_is_not () {
-    [[ "$(whoami)" != "$1" ]] || exit 2
-}
-
-#function lc_init () {
-#    # as root / as user?
-#
-#    # note: in demo, append /etc/profile for PATH
-#}
-#
-#function lc_startup () {
-#    # as root / as user?
-#    # with desktop env? (not supported yet)
-#
-#}
-#
-#function lc_login () {
-#    # warning: less useful. happens again if user logout/login again. (not supported yet)
-#    lc_login_is_x11?
-#}
-#
-#function lc_cron () {
-#    # hourly / daily / weekly / monthly?
-#    # as root / as user?
-#    $ how to allow user set 'every 2m' or 'every 1d'?
-#
-#}
-
-# Warning: watch out for unintended user
-lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
 
 function lc_fsmap () {
     # If existing symlink is correct, do nothing & return 0 (success).
@@ -116,76 +82,98 @@ function lci_state_file_list () {
     return $?
 }
 
+function lci_overwrite_conf () {
+    local fname="$1"    # (output) lc config path
+    local confpath="$2" # user masterconf script path
 
-function lci_register () {
-    local rootdir="$1"
-    [[ -d "$rootdir" ]] && [[ -f "$rootdir/masterconf.sh" ]] || die "lci_register: $rootdir/masterconf.sh must exist"
-    local newconf="path=$(realpath "$rootdir/masterconf.sh")"
+    local newconf="masterconf=$(realpath "$confpath")"
 
-    if [[ -f /etc/linuxconf.conf ]]; then
-        local oldconf="$(grep ^path= /etc/linuxconf.conf 2>/dev/null)"
+    # Don't re-create if old config already looks good. In this case, init_done should be preserved. TODO: rename lc register to lc init, then should I remove this behavior??
+    if [[ -f "$fname" ]]; then
+        local oldconf="$(grep ^masterconf= "$fname" 2>/dev/null)"
         [[ "$oldconf" = "$newconf" ]] && return 0
     fi
 
+    echo "$newconf" | tee "$fname" || err "lci_overwrite_conf: unable to create $fname" || return $?
+    chmod ugo+rw "$fname"
+}
+function lci_conf_get_masterconf_path () {
+    local fname="$1"    # lc config path
+    grep ^masterconf= "$fname" | sed s/^masterconf=//
+}
+
+function lci_register () {
+    local confpath="$1"
+    [[ -f "$confpath" ]] || die "lci_register: $confpath not exist"
+
     # For new register (or register a different dir), clear all existing conf. This will trigger init again.
-    echo "$newconf" | tee /etc/linuxconf.conf || die "lci_register failed, unable to write /etc/linuxconf.conf"
-    chmod ugo+rw /etc/linuxconf.conf
+    lci_overwrite_conf /etc/linuxconf.conf "$confpath" || die "lci_register cannot write new conf"
 }
 
 function lci_init_if_needed () {
     local uname="$(whoami)"
     lci_state_file_contains /etc/linuxconf.conf init_done "$uname" && return 0
 
+    # call lc_init()
     export LCI_SUBSHELL_OP=lc_init
-    # TODO: TODO: call init 
-    export LCI_SUBSHELL_OP=__lc_operation_unset
+    local masterconf="$(lci_conf_get_masterconf_path /etc/linuxconf.conf)" || die "unable to call lc_init. Cannot read masterconf path from /etc/linuxconf.conf"
+    local workdir="$(dirname "$masterconf")"
+    cd "$workdir" || die "unable to enter config directory: $workdir"
+    lc_include "$masterconf"
+    export LCI_SUBSHELL_OP=__lc_operation_undefined
     
     lci_state_file_append /etc/linuxconf.conf init_done "$uname" || die "lc_init functions succeeded, but unable to update /etc/linuxconf.conf"
 }
 
 function lci_startup_if_needed () {
-    # Arg1: Username. Leave empty to call startup for all user.
-    local uname_="$1"
+    local uname="$(whoami)"
 
     local state_file=/tmp/.linuxconf-startup-state
     if [[ ! -f $state_file ]]; then
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
 
-    if [[ "$uname_" = "" ]]; then
-        [[ "$(whoami)" != root ]] && die "lci_startup_if_needed called for all user, but caller is not root. sudo might fail."
-        local ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || err "lci_state_file_list failed" || return $?
-    else
-        local ar_uname=("$uname_")
-    fi
+    lci_state_file_contains $state_file startup_done "$uname" && continue
 
-    for uname in "${ar_uname[@]}"; do
-        lci_state_file_contains $state_file startup_done "$uname" && return 0
+    # call lc_startup()
+    export LCI_SUBSHELL_OP=lc_startup
+    local masterconf="$(lci_conf_get_masterconf_path /etc/linuxconf.conf)" || die "unable to call lc_init. Cannot read masterconf path from /etc/linuxconf.conf"
+    local workdir="$(dirname "$masterconf")"
+    cd "$workdir" || die "unable to enter config directory: $workdir"
+    lc_include "$masterconf"
+    export LCI_SUBSHELL_OP=__lc_operation_undefined
+    
+    lci_state_file_append $state_file startup_done "$uname" || die "lc_startup functions succeeded, but unable to update $state_file"
+}
 
-        export LCI_SUBSHELL_OP=lc_startup
-        # TODO: TODO: call startup
-        # TODO: if this function only called once (from systemd as root), u must read user list from init_done_u_xxx & iterate. 
-        #       if that's the case, startup_u still needed, because on first init, startup might be called multiple times for same user.
-        sudo -u ...
-        export LCI_SUBSHELL_OP=__lc_operation_unset
-       
-        lci_state_file_append $state_file startup_done "$uname" || die "lc_startup functions succeeded, but unable to update $state_file"
-    done
+function lci_usage () {
+    echo2 "Usage: Run '$0 register <path/to/masterconf.sh>', then it will work out-of-box."
+    exit 1
 }
 
 subcommand="$1"
+if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
+    [[ ! -f /etc/linuxconf.conf ]] && die "Please run '$0 register <path/to/masterconf.sh>' at least once"
+fi
 if [[ "$subcommand" = register ]]; then
     lci_register "$2"
     lci_init_if_needed
-    lci_startup_if_needed "$(whoami)"
+    lci_startup_if_needed
 elif [[ "$subcommand" = _cron ]]; then
-    # TODO
+    # TODO: implement cron. with crontab or same systemd service?
 elif [[ "$subcommand" = _startup ]]; then
     lci_startup_if_needed
+elif [[ "$subcommand" = _startup_all ]]; then
+    # systemd should call this service as root, and it will spawn subprocess for all users with sudo
+    [[ "$(whoami)" != root ]] && die "$0 _startup_all started as non-root. Exit because sudo might fail."
+    local ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || die "List all initialized users: lci_state_file_list failed"
+    for uname in "${ar_uname[@]}"; do
+        echo2 "Spawn subprocess '$0 _startup' as user $uname..."
+        sudo -u "$uname" "$0" _startup
+    done
 else
     lci_usage
     exit
 fi
 
-[[ ! -f /etc/linuxconf.conf ]] && echo "Please run '$0 register <Config Root Dir>' at least once" && exit 1
 
