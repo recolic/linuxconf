@@ -22,7 +22,12 @@ lc_assert_user_is_not root
 function lc_init () {
     # as root / as user?
 
-    # note: in demo, append /etc/profile for PATH
+    # Some helpful functions.. To stop running current script:
+    [ -f /usr/bin/apt ] || die "This is not even ubuntu. Stop!"
+    # To print an error message:
+    apt install some_package || err "Failed to install my favorite pkg!"
+
+    gsettings set var=123
 }
 
 function lc_startup () {
