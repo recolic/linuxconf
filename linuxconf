@@ -25,11 +25,12 @@ function lc_include () {
     # print the return code of the eval-ed function to stderr, but this function should always return success.
 
     for script in "$@"; do
+        echo2 "$script -- $LCI_SUBSHELL_OP started as $(whoami), at $(pwd)"
         (
             source "$script"
             eval "$LCI_SUBSHELL_OP"
         )
-        echo2 "$script -- $LCI_SUBSHELL_OP completed. return_val = $return_code"
+        echo2 "$script -- $LCI_SUBSHELL_OP completed with status $return_code"
     done
 
     return 0
