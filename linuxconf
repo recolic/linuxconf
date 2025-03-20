@@ -25,9 +25,11 @@ function lc_include () {
     # print the return code of the eval-ed function to stderr, but this function should always return success.
 
     for script in "$@"; do
+	[[ -f "$script" ]] || err "ERROR: DEBUG: script not exist >>$script<<" || continue
         echo2 "$script -- $LCI_SUBSHELL_OP started as $(whoami), at $(pwd)"
         (
             source "$script"
+	    declare -F "$LCI_SUBSHELL_OP" >/dev/null 2>&1 || exit 0
             eval "$LCI_SUBSHELL_OP"
         )
         echo2 "$script -- $LCI_SUBSHELL_OP completed with status $return_code"
@@ -41,7 +43,7 @@ function lci_fsmap () {
     # Otherwise, delete the existing symlink. If the existing item is file/folder, move to '$filename.linuxsync_backup'.
     # Then create a symlink.
 
-    local content_path="$(realpath "$1")"
+    local content_path="$(realpath "$1")" || return $?
     local symlink_path="$2"
 
     if [ -L "$symlink_path" ]; then
@@ -69,7 +71,7 @@ function lci_state_file_append () {
     local prefix="$2"
     local uname="$3"
 
-    echo "${prefix}_u_$uname=1" | tee -a "$fname"
+    echo "${prefix}_u_$uname=1" | tee -a "$fname" > /dev/null
     return $?
 }
 function lci_state_file_contains () {
@@ -77,7 +79,7 @@ function lci_state_file_contains () {
     local prefix="$2"
     local uname="$3"
 
-    grep "^${prefix}_u_$uname=1" "$fname"
+    grep "^${prefix}_u_$uname=1" "$fname" > /dev/null
     return $?
 }
 function lci_state_file_list () {
@@ -90,25 +92,27 @@ function lci_state_file_list () {
     return $?
 }
 
-function lci_overwrite_conf () {
-    local fname="$1"    # (output) lc config path
-    local confpath="$2" # user masterconf script path
-
-    local newconf="masterconf=$(realpath "$confpath")"
-
-    # Don't re-create if old config already looks good. In this case, init_done should be preserved. TODO: rename lc register to lc init, then should I remove this behavior??
-    if [[ -f "$fname" ]]; then
-        local oldconf="$(grep ^masterconf= "$fname" 2>/dev/null)"
-        [[ "$oldconf" = "$newconf" ]] && return 0
-    fi
-
-    echo "$newconf" | tee "$fname" || err "lci_overwrite_conf: unable to create $fname" || return $?
-    chmod ugo+rw "$fname"
-}
 function lci_conf_get_masterconf_path () {
     local fname="$1"    # lc config path
     grep ^masterconf= "$fname" | sed s/^masterconf=//
 }
+function lci_overwrite_conf () {
+    local fname="$1"    # (output) lc config path
+    local confpath="$2" # user masterconf script path
+
+    local newpath="$(realpath "$confpath")"
+    [ "$newpath" != "" ] || err "lci_overwrite_conf: cannot unfold path $confpath. Permission error?" || return $?
+
+    # Don't re-create if old config already looks good. In this case, init_done should be preserved. TODO: rename lc register to lc init, then should I remove this behavior??
+    if [[ -f "$fname" ]]; then
+        local oldpath="$(lci_conf_get_masterconf_path $fname)"
+        [[ "$oldpath" = "$newpath" ]] && return 0
+    fi
+
+    echo "masterconf=$newpath" | tee "$fname" > /dev/null || err "lci_overwrite_conf: unable to create $fname" || return $?
+    chmod ugo+rw "$fname"
+}
+
 
 function lci_register () {
     local confpath="$1"
@@ -121,6 +125,7 @@ function lci_register () {
 function lci_init_if_needed () {
     local uname="$(whoami)"
     lci_state_file_contains /etc/linuxconf.conf init_done "$uname" && return 0
+    echo2 "RDEBUG: init needed for $uname"
 
     # call lc_init()
     export LCI_SUBSHELL_OP=lc_init
@@ -141,7 +146,7 @@ function lci_startup_if_needed () {
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
 
-    lci_state_file_contains $state_file startup_done "$uname" && continue
+    lci_state_file_contains $state_file startup_done "$uname" && return 0
 
     # call lc_startup()
     export LCI_SUBSHELL_OP=lc_startup
