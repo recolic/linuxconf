@@ -179,7 +179,8 @@ elif [[ "$subcommand" = _cron ]]; then
     # TODO: implement cron. with crontab or same systemd service?
     :
 elif [[ "$subcommand" = _startup ]]; then
-    lci_startup_if_needed
+    lci_startup_if_needed # TODO: no need to check "if needed"
+    # TODO: for current user, check if desktop environment 'autostart' dir exists. If so, update autostart/linuxsync_on_login.desktop
 elif [[ "$subcommand" = _startup_all ]]; then
     # systemd should call this service as root, and it will spawn subprocess for all users with sudo
     [[ "$(whoami)" != root ]] && die "$0 _startup_all started as non-root. Exit because sudo might fail."
@@ -188,6 +189,9 @@ elif [[ "$subcommand" = _startup_all ]]; then
         echo2 "Spawn subprocess '$0 _startup' as user $uname..."
         sudo -u "$uname" "$0" _startup
     done
+elif [[ "$subcommand" = _de_login ]]; then
+    # TODO: call lc_login. no need to check "if needed"
+    :
 else
     lci_usage
     exit
