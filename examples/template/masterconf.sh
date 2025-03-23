@@ -37,8 +37,10 @@ function lc_startup () {
 }
 
 function lc_login () {
-    # warning: less useful. happens again if user logout/login again.
-    # (no plan to support in first ver)
+    # Your desktop environment must implement "XDG autostart". Ref: https://wiki.archlinux.org/title/XDG_Autostart
+    # Otherwise... Use lc_init to your task into wherever u'd like.
+    #
+    # Warning: Could be called multiple times if user logout/login again.
     lc_login_is_x11?
 }
 

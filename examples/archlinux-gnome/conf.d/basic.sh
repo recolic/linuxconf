@@ -2,11 +2,11 @@ lc_assert_user_is root
 
 desktop_related_setup () {
     # to install & enable gnome
-    pacman -Sy --noconfirm gnome networkmanager power-profiles-daemon nextcloud-client firefox
+    pacman -Sy --noconfirm gnome networkmanager power-profiles-daemon
     systemctl enable gdm NetworkManager power-profiles-daemon
 
     # more customization...
-    pacman -Sy --needed --noconfirm base-devel nextcloud-client firefox telegram-desktop docker shadowsocks-rust v2ray proxychains xclip adobe-source-han-sans-cn-fonts      pcsclite ccid    git inetutils wget ttf-fira-code htop tmux dos2unix nfs-utils python-pip gnome-tweaks fcitx5-im man-db man-pages  kolourpaint breeze
+    pacman -Sy --needed --noconfirm base-devel telegram-desktop docker shadowsocks-rust v2ray proxychains xclip adobe-source-han-sans-cn-fonts      pcsclite ccid    git inetutils wget ttf-fira-code htop tmux dos2unix nfs-utils fcitx5-im firefox
     pacman -Sy --needed --noconfirm recolic-aur/gnome-terminal-transparency recolic-aur/oreo-cursors-git
     
     echo '
