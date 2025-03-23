@@ -1,5 +1,9 @@
 lc_assert_user_is_not root
 
+lc_fsmap files/config.fish $HOME/.config/fish/config.fish
+lc_fsmap files/ssh_config $HOME/.ssh/config
+lc_fsmap files/vimrc $HOME/.vimrc
+
 config_gsettings () {
     echo "## gnome desktop config"
     gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type nothing
@@ -23,8 +27,6 @@ config_gsettings () {
     gsettings set org.gnome.desktop.wm.keybindings switch-windows-backward "['<Primary><Shift>Tab']"
     gsettings set org.gnome.desktop.wm.keybindings switch-applications "['<Super>Tab', '<Alt>Tab']"
     gsettings set org.gnome.desktop.wm.keybindings switch-applications-backward "['<Shift><Super>Tab', '<Shift><Alt>Tab']"
-
-   
 }
 
 lc_init () {
@@ -33,8 +35,6 @@ lc_init () {
     # config_gpg
     config_gsettings
 }
-
-lc_fsmap $HOME/sh/mybin /usr/mybin
 
 lc_startup () {
     firefox_config='
@@ -50,5 +50,7 @@ user_pref("browser.tabs.hoverPreview.enabled", false);'
 
 lc_login () {
     # echo _:1 | bash /usr/mybin/unlock_keyrings
+    echo "$(date) test-only: lc_login called" >> /tmp/note
+    chmod 777 /tmp/note
 }
 

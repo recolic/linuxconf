@@ -1,4 +1,9 @@
 #!/bin/bash
 
-TODO: this is a wrapper. it should download & install real linuxconf binary.
+if [ ! -f /usr/bin/linuxconf ]; then
+    curl "https://git.recolic.net/root/linuxconf/-/raw/master/linuxconf?ref_type=heads" -o /usr/bin/linuxconf ||
+        ! echo "Unable to download linuxconf executable." || exit 1
+    chmod +x /usr/bin/linuxconf
+fi
 
+/usr/bin/linuxconf "$@"
