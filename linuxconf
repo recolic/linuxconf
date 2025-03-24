@@ -145,7 +145,7 @@ function lci_init_if_needed () {
 function lci_startup_if_needed () {
     local uname="$(whoami)"
 
-    local state_file=/tmp/.linuxconf-startup-state
+    local state_file="/tmp/.linuxconf-state-$uname"
     if [[ ! -f $state_file ]]; then
         touch $state_file && chmod ugo+rw $state_file || die "failed to create tmp file $state_file"
     fi
@@ -213,7 +213,7 @@ function lci_install_login_hook () {
         echo "$desktop_file" | base64 -d > "$XDG_CONFIG_DIRS/autostart/lc-hook.desktop" || return $?
 
         for uconfig in /home/*/.config/autostart/lc-hook.desktop "$XDG_CONFIG_HOME/autostart/lc-hook.desktop"; do
-            [ -f "$uconfig" ] && rm -f "$uconfig"
+            [ -f "$uconfig" ] && rm -f "$uconfig" || true
         done
     else
         [ -f "$XDG_CONFIG_DIRS/autostart/lc-hook.desktop" ] && return 0
