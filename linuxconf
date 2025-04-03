@@ -246,7 +246,7 @@ function lci_install_login_hook () {
     fi
 }
 
-lci_version=0.2.0
+lci_version=0.2.1
 subcommand="$1"
 if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && lcf_die "Please run '$0 register <path/to/masterconf.sh>' at least once"
