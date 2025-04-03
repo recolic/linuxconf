@@ -261,7 +261,7 @@ elif [[ "$subcommand" = _startup ]]; then
 elif [[ "$subcommand" = _startup_all ]]; then
     # systemd should call this service as root, and it will spawn subprocess for all users with sudo
     [[ "$(whoami)" != root ]] && lcf_die "$0 _startup_all started as non-root. Exit because sudo might fail."
-    local ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || lcf_die "List all initialized users: lci_state_file_list failed"
+    ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || lcf_die "List all initialized users: lci_state_file_list failed"
     for uname in "${ar_uname[@]}"; do
         lcf_echo2 "Spawn subprocess '$0 _startup' as user $uname..."
         sudo -u "$uname" "$0" _startup

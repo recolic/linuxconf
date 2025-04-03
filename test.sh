@@ -1,9 +1,9 @@
 set -e
 tar -cvzf /tmp/test.tgz examples
-netpush /tmp/test.tgz
+netpush /tmp/test.tgz linuxconf
 
 echo "
-TODO:
+TEST >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 rm /mnt/fsdisk/svm/vm/archtest/ -r
 pgkill archtest
 
@@ -13,4 +13,6 @@ sudo su
 
 cd /
 curl https://recolic.cc/tmp/test.tgz | tar xvzf -
+cd examples/archlinux-gnome/
+./linuxconf.wrapper register masterconf.sh
 "
