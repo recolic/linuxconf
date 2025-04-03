@@ -21,21 +21,22 @@ XMODIFIERS=@im=fcitx5' > /etc/environment
 
 lc_init () {
     # my favorite pkgs
-    pacman -Sy --noconfirm fish dhcpcd vim sudo openssh
-    pacman -Sy --noconfirm --asdeps openssl
+    pacman -Syu --noconfirm
+    pacman -S --noconfirm fish dhcpcd vim sudo openssh
+    pacman -S --noconfirm --asdeps openssl
 
-    # add primary user
+    # add primary user. If you want to do this, at least give read access to linuxconf dir.
     useradd --create-home --shell /usr/bin/fish rtest
     echo 'rtest ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
     usermod --password $(echo testpass | openssl passwd -1 -stdin) rtest
 
     if ! sudo -u rtest realpath masterconf.sh; then
-        echo "ERROR: rtest do not have access to current dir... fix permission and manually register with 'sudo -u rtest'."
+        echo "ERROR: rtest do not have read access to current dir... fix permission and manually register with 'sudo -u rtest'."
     else
         sudo -u rtest linuxconf register masterconf.sh
     fi
 
-    # more customization...
+    # more one-time customization
     grep kernel.sysrq=1 /etc/sysctl.d/99-sysctl.conf || echo 'kernel.sysrq=1' >> /etc/sysctl.d/99-sysctl.conf
 
     grep recolic-aur /etc/pacman.conf || echo '[recolic-aur]
