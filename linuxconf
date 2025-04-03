@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Useful functions as built-in
 function echo2 () {
     echo "$@" 1>&2
 }
@@ -11,6 +12,24 @@ function die () {
     err "$@"
     exit 1
 }
+function bgrun () {
+    # Usage: bgrun /var/log/your.log sslocal -s xxx -p 'hello world my password' -l xxx --xxx
+    # Usage: bgrun /var/log/your.log auto_restart frpc -c my_server.ini
+    # v202504-1
+    local logF="$1"
+    shift
+    local cmd="$1"
+    shift
+    if [ "$cmd" = auto_restart ] && [ ! -f /tmp/.auto_restart ]; then
+        echo IyEvYmluL2Jhc2gKCndoaWxlIHRydWU7IGRvCiAgICAiJEAiCiAgICBbWyAkPyA9IDEzMCBdXSAmJiBicmVhawogICAgc2xlZXAgMQpkb25lCg== | base64 -d > /tmp/.auto_restart
+        chmod ugo+rx /tmp/.auto_restart
+        cmd=/tmp/.auto_restart
+    fi
+    echo "[$(date --utc)] EXEC $cmd $@" >> "$logF"
+    nohup "$cmd" "$@" >> "$logF" 2>&1 & disown
+    return $?
+}
+
 
 function lc_assert_user_is () {
     [[ "$(whoami)" = "$1" ]] || exit 0
