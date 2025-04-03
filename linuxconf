@@ -251,7 +251,7 @@ if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && lcf_die "Please run '$0 register <path/to/masterconf.sh>' at least once"
 fi
 if [[ "$subcommand" = register ]]; then
-    lcf_echo2 "Confirm linuxconf init at $(pwd) ? Make sure all (desired) user have read access!"
+    lcf_echo2 "Confirm linuxconf init at $(dirname "$(realpath "$2")") ? Make sure all (desired) user have read access!"
     read -p "Confirm ? " || exit 0
     lci_register "$2"
     lci_install_startup_hook || lcf_die "failed to install on_startup hook"
