@@ -6,7 +6,7 @@ desktop_related_setup () {
     systemctl enable gdm NetworkManager power-profiles-daemon
 
     # more customization...
-    pacman -Sy --needed --noconfirm base-devel telegram-desktop docker shadowsocks-rust v2ray proxychains xclip adobe-source-han-sans-cn-fonts      pcsclite ccid    git inetutils wget ttf-fira-code htop tmux dos2unix nfs-utils fcitx5-im firefox
+    pacman -Sy --needed --noconfirm base-devel telegram-desktop docker shadowsocks-rust v2ray proxychains xclip adobe-source-han-sans-cn-fonts      pcsclite ccid    inetutils wget ttf-fira-code htop tmux dos2unix nfs-utils fcitx5-im firefox
     pacman -Sy --needed --noconfirm recolic-aur/gnome-terminal-transparency recolic-aur/oreo-cursors-git
     
     echo '
@@ -22,7 +22,7 @@ XMODIFIERS=@im=fcitx5' > /etc/environment
 lc_init () {
     # my favorite pkgs
     pacman -Syu --noconfirm
-    pacman -S --noconfirm fish dhcpcd vim sudo openssh
+    pacman -S --noconfirm fish dhcpcd vim sudo openssh git
     pacman -S --noconfirm --asdeps openssl
 
     # add primary user. If you want to do this, at least give read access to linuxconf dir.
