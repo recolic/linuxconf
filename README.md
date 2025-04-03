@@ -19,3 +19,7 @@ This project is to demonstrate a possibility to manage customization in a centra
 ## dependency
 
 coreutils bash grep sudo
+
+## TODO
+
+init order? what is one init depends on another?
