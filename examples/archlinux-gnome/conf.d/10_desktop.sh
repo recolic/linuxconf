@@ -1,5 +1,6 @@
 lc_assert_user_is_not root
 
+# okay to stay inside lc_init() or outside
 lc_fsmap files/config.fish $HOME/.config/fish/config.fish
 lc_fsmap files/ssh_config $HOME/.ssh/config
 lc_fsmap files/vimrc $HOME/.vimrc

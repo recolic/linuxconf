@@ -57,15 +57,21 @@ function lc_include () {
     return 0
 }
 
-function lci_fsmap () {
+function lc_fsmap () {
     # If existing symlink is correct, do nothing & return 0 (success).
     #   Otherwise, delete the existing symlink. 
     # If the existing item is file/folder, move to '$filename.linuxsync_backup'.
     # If target folder doesn't exist, create it.
     # Then create a symlink.
 
-    local content_path="$(realpath "$1")" || return $?
+    local content_path="$1"
     local symlink_path="$2"
+    
+    if [ ! -f "$content_path" ] && [[ "$content_path" == /* ]]; then
+        : # skip this specific failure case
+    else
+        content_path="$(realpath "$content_path")" || return $?
+    fi
 
     if [ -L "$symlink_path" ]; then
         if [ "$(readlink "$symlink_path")" = "$content_path" ]; then
@@ -80,13 +86,6 @@ function lci_fsmap () {
     [ -d "$(dirname "$symlink_path")" ] || mkdir -p "$(dirname "$symlink_path")" || return $?
 
     ln -s "$content_path" "$symlink_path"
-}
-
-function lc_fsmap () {
-    lci_fsmap "$@"
-    local result=$?
-    [ $result = 0 ] || lcf_err "lc_fsmap returned error $result"
-    return $result
 }
 
 function lci_state_file_append () {
