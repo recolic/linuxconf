@@ -45,7 +45,7 @@ user_pref("browser.tabs.hoverPreview.enabled", false);'
         [[ -d "$dir" ]] && echo "$firefox_config" > "$dir/user.js"
     done
 
-    [[ -f /usr/bin/az ]] && az config set core.login_experience_v2=off
+    [[ -f /usr/bin/az ]] && az config set core.login_experience_v2=off || true
 }
 
 lc_login () {

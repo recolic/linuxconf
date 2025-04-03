@@ -13,10 +13,10 @@ function die () {
 }
 
 function lc_assert_user_is () {
-    [[ "$(whoami)" = "$1" ]] || exit 2
+    [[ "$(whoami)" = "$1" ]] || exit 0
 }
 function lc_assert_user_is_not () {
-    [[ "$(whoami)" != "$1" ]] || exit 2
+    [[ "$(whoami)" != "$1" ]] || exit 0
 }
 
 function lc_include () {
@@ -32,7 +32,7 @@ function lc_include () {
             eval "$LCI_SUBSHELL_OP"
         )
         echo2 "$script -- $LCI_SUBSHELL_OP completed with status $?"
-        # TODO: should I abort on failure? But for nested lc_include, I cannot know if it failed.
+        # TODO: should I abort on failure? It will stop running other include files. Don't do it now.
     done
 
     return 0
@@ -223,7 +223,7 @@ function lci_install_login_hook () {
     fi
 }
 
-lci_version=0.1.1
+lci_version=0.2.0
 subcommand="$1"
 if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && die "Please run '$0 register <path/to/masterconf.sh>' at least once"
