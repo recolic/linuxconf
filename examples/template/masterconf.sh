@@ -14,7 +14,7 @@
 
 lc_include conf.d/*
 
-# likely to use the following grammar in each sub conf:
+# If you have multiple user.. You might need this in your config file.
 lc_assert_user_is root
 lc_assert_user_is_not root
 
@@ -32,8 +32,11 @@ function lc_init () {
 
 function lc_startup () {
     # as root / as user?
-    # with desktop env? (not supported yet)
+    # You want desktop env? Use lc_login()
     
+    # want some daemon in background?
+    lcf_bgrun /tmp/server.log my_server --arg1 123 --arg2 "hello world !"
+    lcf_bgrun /tmp/server.log auto_restart important_service --gg "example"
 }
 
 function lc_login () {
@@ -52,8 +55,6 @@ function lc_cron () {
 
 # Warning: watch out for unintended user
 lc_fsmap files/vimrc $LC_USER_HOME/.vimrc
-
-lc_daemon files/myservice.sh
 
 # TODO: what if lc_fsmap depends on lc_init() ?? This is not recommended usage. 
 # e.g: 'git clone xxx $HOME/sh' and lc_fsmap $HOME/sh/something /usr/bin/fancy
