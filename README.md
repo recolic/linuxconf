@@ -16,6 +16,6 @@ Nice. You have just demonstrated how to reproduce that ugly mess: Everything is 
 
 This project is to demonstrate a possibility to manage customization in a centralized folder. If you back it up & recover, your workspace is back. If you move this single folder to another PC, it turns into your familiar workspace.
 
-## dependency:
+## dependency
 
 coreutils bash grep sudo
