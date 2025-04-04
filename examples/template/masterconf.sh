@@ -36,9 +36,9 @@ lc_startup () {
     # You want desktop env? Use lc_login()
     
     # want some daemon in background?
-    lcf_bgrun /tmp/server.log my_server --arg1 123 --arg2 "hello world !"
+    lc_bgrun /tmp/server.log my_server --arg1 123 --arg2 "hello world !"
     # Guaranteed! linuxconf dir is your current workdir.
-    lcf_bgrun /dev/null auto_restart important_service --config files/test.conf
+    lc_bgrun /dev/null auto_restart important_service --config files/test.conf
 }
 
 lc_login () {

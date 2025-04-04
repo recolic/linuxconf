@@ -45,7 +45,7 @@ user_pref("browser.tabs.hoverPreview.enabled", false);'
         [[ -d "$dir" ]] && echo "$firefox_config" > "$dir/user.js"
     done
 
-    lcf_bgrun /tmp/ddns.log auto_restart bash -c "curl https://recolic.net/tmp/example-ddns-api.log ; sleep 300"
+    lc_bgrun /tmp/ddns.log auto_restart bash -c "curl https://recolic.net/tmp/example-ddns-api.log ; sleep 300"
 
     [[ -f /usr/bin/az ]] && az config set core.login_experience_v2=off || true
 }
@@ -54,6 +54,6 @@ lc_login () {
     # echo _:1 | bash /usr/mybin/unlock_keyrings
     echo "$(date) test-only: lc_login called" >> /tmp/note
     chmod 777 /tmp/note
-    lcf_echo2 "detected login as $(whoami). it's running as expected!"
+    lc_echo2 "detected login as $(whoami). it's running as expected!"
 }
 
