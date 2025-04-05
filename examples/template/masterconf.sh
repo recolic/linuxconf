@@ -1,4 +1,3 @@
-# we run this master config only once, for each "registered" user.
 # To use linuxconf:
 #   sudo linuxconf register path/to/masterconf.sh
 #   sudo -u ... linuxconf register path/to/masterconf.sh
