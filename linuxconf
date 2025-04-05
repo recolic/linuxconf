@@ -15,18 +15,24 @@ function lc_die () {
 function lc_bgrun () {
     # Usage: lc_bgrun /var/log/your.log sslocal -s xxx -p 'hello world my password' -l xxx --xxx
     # Usage: lc_bgrun /var/log/your.log auto_restart frpc -c my_server.ini
-    # v202504-1
+    # Usage: lc_bgrun /dev/null every 1h curl https://example-ddns.com/api
+    # v202504-2
     local logF="$1"
     shift
     local cmd="$1"
     shift
+    local t=1
+    if [ "$cmd" = every ]; then
+        t="$1"
+        cmd=auto_restart
+    fi
     if [ "$cmd" = auto_restart ] && [ ! -f /tmp/.auto_restart ]; then
-        echo IyEvYmluL2Jhc2gKCndoaWxlIHRydWU7IGRvCiAgICAiJEAiCiAgICBbWyAkPyA9IDEzMCBdXSAmJiBicmVhawogICAgc2xlZXAgMQpkb25lCg== | base64 -d > /tmp/.auto_restart
+        echo IyEvYmluL2Jhc2gKd2hpbGUgdHJ1ZTsgZG8KIiRAIgpbWyAkPyA9IDEzMCBdXSAmJiBicmVhawpzbGVlcCAiJHQiCmRvbmUK | base64 -d > /tmp/.auto_restart
         chmod ugo+rx /tmp/.auto_restart
         cmd=/tmp/.auto_restart
     fi
     echo "[$(date --utc)] EXEC $cmd $@" >> "$logF"
-    nohup "$cmd" "$@" >> "$logF" 2>&1 & disown
+    t="$t" nohup "$cmd" "$@" >> "$logF" 2>&1 & disown
     return $?
 }
 
@@ -245,7 +251,7 @@ function lci_install_login_hook () {
     fi
 }
 
-lci_version=0.2.2
+lci_version=0.2.3
 subcommand="$1"
 if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && lc_die "Please run '$0 register <path/to/masterconf.sh>' at least once"
@@ -258,9 +264,6 @@ if [[ "$subcommand" = register ]]; then
     lci_install_login_hook || lc_die "failed to install on_login hook"
     lci_init_if_needed
     lci_startup_if_needed
-elif [[ "$subcommand" = _cron ]]; then
-    # TODO: implement cron. with crontab or same systemd service?
-    :
 elif [[ "$subcommand" = _startup ]]; then
     lci_startup_if_needed
 elif [[ "$subcommand" = _startup_all ]]; then
