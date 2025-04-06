@@ -275,7 +275,7 @@ elif [[ "$subcommand" = _startup_all ]]; then
     ar_uname=($(lci_state_file_list /etc/linuxconf.conf init_done)) || lc_die "List all initialized users: lci_state_file_list failed"
     for uname in "${ar_uname[@]}"; do
         lc_echo2 "Spawn subprocess '$0 _startup' as user $uname..."
-        sudo -u "$uname" "$0" _startup
+        sudo -u "$uname" env -u SUDO_GID -u SUDO_COMMAND -u SUDO_USER -u SUDO_UID "$0" _startup
     done
 elif [[ "$subcommand" = _xdg_login ]]; then
     lci_call lc_login
