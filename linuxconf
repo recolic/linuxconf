@@ -16,23 +16,26 @@ function lc_bgrun () {
     # Usage: lc_bgrun /var/log/your.log sslocal -s xxx -p 'hello world my password' -l xxx --xxx
     # Usage: lc_bgrun /var/log/your.log auto_restart frpc -c my_server.ini
     # Usage: lc_bgrun /dev/null every 1h curl https://example-ddns.com/api
-    # v202504-2
+    # v202504-3
     local logF="$1"
     shift
     local cmd="$1"
     shift
     local t=1
+    local sync=1
     if [ "$cmd" = every ]; then
         t="$1"
+        sync=0
         cmd=auto_restart
+        shift
     fi
     if [ "$cmd" = auto_restart ] && [ ! -f /tmp/.auto_restart ]; then
-        echo IyEvYmluL2Jhc2gKd2hpbGUgdHJ1ZTsgZG8KIiRAIgpbWyAkPyA9IDEzMCBdXSAmJiBicmVhawpzbGVlcCAiJHQiCmRvbmUK | base64 -d > /tmp/.auto_restart
+        echo IyEvYmluL2Jhc2gKd2hpbGUgdHJ1ZTsgZG8KWyAkc3luYyA9IDEgXSAmJiAiJEAiClsgJHN5bmMgPSAwIF0gJiYgIiRAIiAmCnNsZWVwICIkdCIKZG9uZQo= | base64 -d > /tmp/.auto_restart
         chmod ugo+rx /tmp/.auto_restart
         cmd=/tmp/.auto_restart
     fi
     echo "[$(date --utc)] EXEC $cmd $@" >> "$logF"
-    t="$t" nohup "$cmd" "$@" >> "$logF" 2>&1 & disown
+    sync=$sync t="$t" nohup "$cmd" "$@" >> "$logF" 2>&1 & disown
     return $?
 }
 
