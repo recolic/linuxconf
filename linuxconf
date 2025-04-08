@@ -16,7 +16,7 @@ function lc_bgrun () {
     # Usage: lc_bgrun /var/log/your.log sslocal -s xxx -p 'hello world my password' -l xxx --xxx
     # Usage: lc_bgrun /var/log/your.log auto_restart frpc -c my_server.ini
     # Usage: lc_bgrun /dev/null every 1h curl https://example-ddns.com/api
-    # v202504-3
+    # v202504-4
     local logF="$1"
     shift
     local cmd="$1"
@@ -29,9 +29,11 @@ function lc_bgrun () {
         cmd=auto_restart
         shift
     fi
-    if [ "$cmd" = auto_restart ] && [ ! -f /tmp/.auto_restart ]; then
-        echo IyEvYmluL2Jhc2gKd2hpbGUgdHJ1ZTsgZG8KWyAkc3luYyA9IDEgXSAmJiAiJEAiClsgJHN5bmMgPSAwIF0gJiYgIiRAIiAmCnNsZWVwICIkdCIKZG9uZQo= | base64 -d > /tmp/.auto_restart
-        chmod ugo+rx /tmp/.auto_restart
+    if [ "$cmd" = auto_restart ]; then
+        if [ ! -f /tmp/.auto_restart ]; then
+          echo IyEvYmluL2Jhc2gKd2hpbGUgdHJ1ZTsgZG8KWyAkc3luYyA9IDEgXSAmJiAiJEAiClsgJHN5bmMgPSAwIF0gJiYgIiRAIiAmCnNsZWVwICIkdCIKZG9uZQo= | base64 -d > /tmp/.auto_restart
+          chmod ugo+rx /tmp/.auto_restart
+        fi
         cmd=/tmp/.auto_restart
     fi
     echo "[$(date --utc)] EXEC $cmd $@" >> "$logF"
@@ -254,7 +256,7 @@ function lci_install_login_hook () {
     fi
 }
 
-lci_version=0.2.3
+lci_version=0.2.4
 subcommand="$1"
 if [[ "$subcommand" != register ]] && [[ "$subcommand" != "" ]]; then
     [[ ! -f /etc/linuxconf.conf ]] && lc_die "Please run '$0 register <path/to/masterconf.sh>' at least once"
